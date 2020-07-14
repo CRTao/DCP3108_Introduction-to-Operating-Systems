@@ -1,0 +1,111 @@
+hostname ALswitch-4
+
+enable secret Ci$co
+service password-encryption
+
+line console 0
+password letmein
+login
+
+line vty 0 15
+password letmein
+login
+
+line console 0
+exec-timeout 0
+
+vlan 10
+name Staff
+vlan 20
+name Sales
+vlan 30
+name Production
+vlan 40
+name Accounting
+vlan 50
+name Design
+vlan 99
+name Management
+
+interface Vlan 10
+ip address 172.16.10.126 255.255.255.128
+no shutdown
+ip default-gateway 172.16.10.126
+interface Vlan 20
+ip address 172.16.20.62 255.255.255.192
+no shutdown
+ip default-gateway 172.16.20.62
+interface Vlan 30
+ip address 172.16.30.30 255.255.255.224
+no shutdown
+ip default-gateway 172.16.30.30
+interface Vlan 40
+ip address 172.16.40.14 255.255.255.240
+no shutdown
+ip default-gateway 172.16.40.14
+interface Vlan 50
+ip address 172.16.50.30 255.255.255.224
+no shutdown
+ip default-gateway 172.16.50.30
+interface Vlan 99
+ip address 172.16.99.7 255.255.255.0
+no shutdown
+ip default-gateway 172.16.99.1
+
+interface range Fa 0/5 - Fa 0/8
+switchport mode access
+switchport access vlan 10
+interface range Fa 0/9 - Fa 0/12
+switchport mode access
+switchport access vlan 50
+interface range Fa 0/13 - Fa 0/15
+switchport mode access
+switchport access vlan 20
+interface range Fa 0/16 - Fa 0/20
+switchport mode access
+switchport access vlan 40
+interface range Fa 0/21 - Fa 0/24
+switchport mode access
+switchport access vlan 99
+
+(routing)
+ip routing
+
+(trunk)
+interface range Fa 0/1 - Fa 0/4
+switchport mode trunk
+switchport trunk native vlan 99
+switchport nonegotiate
+interface range G 0/1 - G 0/2
+switchport mode trunk
+switchport trunk native vlan 99
+switchport nonegotiate
+
+vtp mode server
+(vtp mode client)
+vtp version 2
+vtp domain NCTUvtp
+
+ip domain name nctu.edu.tw
+username SSHuser1 secret User1Pass    (5 encrypted)
+username SSHuser2 password User2Pass  (7 encrypted)
+line vty 0 15
+login local
+transport input ssh
+crypto key generate rsa
+
+
+
+(VLAN 30) DL1(13~15) DL2(9~12) AL13(9~12)
+interface range Fa 0/9 - Fa 0/12
+switchport port-security
+switchport port-security maximum 2
+switchport port-security violation shutdown
+(VLAN 50) DL2(16~20) AL24(9~12)
+interface range Fa 0/9 - Fa 0/12
+switchport port-security
+switchport port-security maximum 3
+switchport port-security mac-address sticky
+switchport port-security violation protect
+
+copy running-config startup-config
